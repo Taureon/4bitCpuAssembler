@@ -86,4 +86,4 @@ for (let i in source) {
 console.log(final);
 
 // so the window does not immediately close if ran by doubleclick with node.js
-setInterval(() => {}, 1000_000)
+setInterval(() => {}, 1000_000);
