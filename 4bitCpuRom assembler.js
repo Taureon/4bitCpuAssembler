@@ -29,6 +29,7 @@ All arithmetic/logic instructions update the zero flag.
 */
 
 //source code, edit here
+//this example calculates fibbonachi numbers
 let source =`
   MOV 0x0
   SWP
