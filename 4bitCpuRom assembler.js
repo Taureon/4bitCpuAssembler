@@ -65,7 +65,7 @@ diodify = x => x.toString(2).replace(/\d/g, x => x === '1' ? '#' : '-').padStart
 
 for (let i in source) {
 	i = parseInt(i);
-	let token = source[i], addNext = true;
+	let token = source[i], addNext = i < source.length - 1;
 	if (token in codeMap) {
 		final += diodify(codeMap[token]);
 	} else if (token.match(/^0x[0-f]$/i)) {
@@ -78,7 +78,7 @@ for (let i in source) {
 		addNext = false;
 	}
 
-	if (addNext && i < source.length - 1) {
+	if (addNext) {
 		final += `\n${i + offset}: `;
 	}
 }
