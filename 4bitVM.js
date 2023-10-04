@@ -82,8 +82,8 @@ while (pointer < 16) {
 			break;
 	}
 
-	regA %= 16;
-	regB %= 16;
+	regA &= 0xf;
+	regB &= 0xf;
 }
 
 // so the window does not immediately close if ran by doubleclick with node.js
