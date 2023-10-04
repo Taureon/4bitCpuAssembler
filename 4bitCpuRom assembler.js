@@ -57,7 +57,7 @@ codeMap = {
 
 jumps = {},
 
-offset = 0,
+offset = 1,
 
 final = 'Compiled ROM:\n0: ',
 
