@@ -35,10 +35,14 @@ let source =`
   SWP
   MOV 0x1
 a SWP
-  ADD
   OUT
+  ADD
   JMP a
-`.replace(/[\n ]+/g, ' ').trim().split(' '),
+`.replace(/[ ]+/g, ' ').split('\n').filter(x=>x).map(x => {
+	x = x.split(' ');
+	if (!x[0]) x.shift();
+	return x;
+}),
 
 codeMap = {
 	IN : 0x0,
@@ -55,32 +59,61 @@ codeMap = {
 	JZ : 0xB
 },
 
+sizeMap = {
+	IN : 1,
+	OUT: 1,
+	MOV: 2,
+	SWP: 1,
+	ADD: 1,
+	SUB: 1,
+	AND: 1,
+	OR : 1,
+	XOR: 1,
+	NOT: 1,
+	JMP: 2,
+	JZ : 2
+},
+
 jumps = {},
 
-offset = 1,
+indexInCode = 0,
 
 final = 'Compiled ROM:\n0: ',
 
 diodify = x => x.toString(2).replace(/\d/g, x => x === '1' ? '#' : '-').padStart(4, '-');
 
-for (let i in source) {
-	i = parseInt(i);
-	let token = source[i], addNext = i < source.length - 1;
-	if (token in codeMap) {
-		final += diodify(codeMap[token]);
-	} else if (token.match(/^0x[0-f]$/i)) {
-		final += diodify(parseInt(token, 16));
-	} else if (token in jumps) {
-		final += diodify(jumps[token]);
-	} else {
-		jumps[token] = i;
-		offset--;
-		addNext = false;
+for (let line of source) {
+	if (line[0]) {
+		jumps[line[0]] = indexInCode;
+	}
+	line.shift();
+	indexInCode += sizeMap[line[0]];
+}
+
+outside: for (let i in source) {
+	let line = source[i];
+	for (let i = 0; i < sizeMap[line[0]]; i++) {
+		if (!line[i]) {
+			final = `Error on line ${i}: Missing ${i ? 'Argument' : 'Instruction'}`;
+			break outside;
+		}
 	}
 
-	if (addNext) {
-		final += `\n${i + offset}: `;
-	}
+	// i = parseInt(i);
+	// let token = source[i], addNext = i < source.length - 1;
+	// if (token in codeMap) {
+	// 	final += diodify(codeMap[token]);
+	// } else if (token.match(/^0x[0-f]$/i)) {
+	// 	final += diodify(parseInt(token, 16));
+	// } else if (token in jumps) {
+	// 	final += diodify(jumps[token]);
+	// } else {
+	// 	jumps[token] = i;
+	// 	offset--;
+	// 	addNext = false;
+	// }
+
+	final += `\n${i + offset}: `;
 }
 
 console.log(final);
