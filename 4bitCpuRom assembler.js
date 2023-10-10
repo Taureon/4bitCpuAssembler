@@ -38,7 +38,7 @@ a SWP
   OUT
   ADD
   JMP a
-`.replace(/[ \t]+/g, ' ').split('\n').filter(x => x.length > 1 && !x.match(/^ #/)).map(x => x.split(' ')),
+`.replace(/[ \t]+/g, ' ').split('\n').filter(x => x.length > 1 && !x.match(/^ ?#/)).map(x => x.split(' ')),
 
 codeMap = {
 	IN : 0x0,
