@@ -12,23 +12,25 @@ rom = [];
 //put binary code here
 `
 0: --#- /init 0 and 1 in registers
-1: ---- |
-2: --## |
-3: --#- |
-4: ---# |
+1: ----
+2: --##
+3: --#-
+4: ---#
 5: --## /calc next number
-6: -#-- |
+6: -#--
 7: ---# /output number
 8: #-#- /jump to calc next number
-9: -#-# |
+9: -#-#
 
-`.trim().split('\n').slice(0, 16)
+`.trim().split('\n')
 .map(x => x.split(' ')[1].replace(/./g, x => x == '#' ? '1' : '0'))
 .forEach(nibble => rom.push(parseInt(nibble, 2)));
 
 while (pointer < rom.length) {
 	switch (rom[pointer++]) {
 		case 0x0: // IN  | reads input to A
+			if (prompt) regA = parseInt(prompt('Input requested:', 0));
+			if (isNaN(regA)) regA = 0;
 			break;
 
 		case 0x1: // OUT | writes A to display
