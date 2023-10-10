@@ -29,15 +29,17 @@ All arithmetic/logic instructions update the zero flag.
 */
 
 //source code, edit here
-//this example calculates fibbonachi numbers
 let source =`
-  MOV 0x0
-  SWP
-  MOV 0x1
-a SWP
-  OUT
-  ADD
-  JMP a
+	# init numbers
+	MOV 0x0
+	SWP
+	MOV 0x1
+
+	# loop and calculate the next fibbonachi number until the end of time
+a	SWP
+	ADD
+	OUT
+	JMP a
 `.replace(/[ \t]+/g, ' ').split('\n').filter(x => x.length > 1 && !x.match(/^ ?#/)).map(x => x.split(' ')),
 
 codeMap = {
@@ -90,7 +92,7 @@ for (let line of source) {
 	let [label, instruction] = line;
 
 	if (label) {
-		jumps[label] = indexInCode;
+		jumps[label] = diodify(indexInCode);
 	}
 
 	indexInCode += hasArgument[instruction] ? 2 : 1;
@@ -128,7 +130,7 @@ outside: {
 					break outside;
 				}
 
-		 		final += diodify(jumps[argument]);
+		 		final += jumps[argument];
 		 		usedJumps[argument] = true;
 				nextFinalLine();
 			} else {
