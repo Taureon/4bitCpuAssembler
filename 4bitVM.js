@@ -7,7 +7,7 @@ regB = 0,
 
 flag = 0,
 
-rom = Array(16).fill(0);
+rom = [];
 
 //put binary code here
 `
@@ -24,9 +24,9 @@ rom = Array(16).fill(0);
 
 `.trim().split('\n').slice(0, 16)
 .map(x => x.split(' ')[1].replace(/./g, x => x == '#' ? '1' : '0'))
-.forEach((nibble, i) => rom[i] = parseInt(nibble, 2));
+.forEach(nibble => rom.push(parseInt(nibble, 2)));
 
-while (pointer < 16) {
+while (pointer < rom.length) {
 	switch (rom[pointer++]) {
 		case 0x0: // IN  | reads input to A
 			break;

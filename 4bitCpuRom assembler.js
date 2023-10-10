@@ -38,11 +38,7 @@ a SWP
   OUT
   ADD
   JMP a
-`.replace(/[ ]+/g, ' ').split('\n').filter(x=>x).map(x => {
-	x = x.split(' ');
-	if (!x[0]) x.shift();
-	return x;
-}),
+`.replace(/[ \t]+/g, ' ').split('\n').filter(x => x.length > 1 && !x.match(/^ #/)).map(x => x.split(' ')),
 
 codeMap = {
 	IN : 0x0,
@@ -59,61 +55,100 @@ codeMap = {
 	JZ : 0xB
 },
 
-sizeMap = {
-	IN : 1,
-	OUT: 1,
-	MOV: 2,
-	SWP: 1,
-	ADD: 1,
-	SUB: 1,
-	AND: 1,
-	OR : 1,
-	XOR: 1,
-	NOT: 1,
-	JMP: 2,
-	JZ : 2
+hasArgument = {
+	MOV: true,
+	JMP: true,
+	JZ : true
+},
+
+jumpInstuctions = {
+	JMP: true,
+	JZ: true
 },
 
 jumps = {},
 
+usedJumps = {},
+
 indexInCode = 0,
+
+hexRegex = /^0x[0-f]$/i,
 
 final = 'Compiled ROM:\n0: ',
 
-diodify = x => x.toString(2).replace(/\d/g, x => x === '1' ? '#' : '-').padStart(4, '-');
+diodify = x => x.toString(2).replace(/\d/g, x => x === '1' ? '#' : '-').padStart(4, '-'),
+
+error = (line, msg) => final = `Error on line ${ line }: ${ msg }\n${ source[line].join(' ') }`,
+
+nextFinalLine = () => {
+	if (indexInCode < source.length + 2) {
+		final += `\n${++indexInCode}: `;
+	}
+};
 
 for (let line of source) {
-	if (line[0]) {
-		jumps[line[0]] = indexInCode;
+	let [label, instruction] = line;
+
+	if (label) {
+		jumps[label] = indexInCode;
 	}
-	line.shift();
-	indexInCode += sizeMap[line[0]];
+
+	indexInCode += hasArgument[instruction] ? 2 : 1;
 }
 
-outside: for (let i in source) {
-	let line = source[i];
-	for (let i = 0; i < sizeMap[line[0]]; i++) {
-		if (!line[i]) {
-			final = `Error on line ${i}: Missing ${i ? 'Argument' : 'Instruction'}`;
+indexInCode = 0;
+
+outside: {
+	for (let line in source) {
+		let [_, instruction, argument] = source[line];
+
+		if (!instruction) {
+			error(line, "Missing Instruction!");
 			break outside;
 		}
+
+		if (!(instruction in codeMap)) {
+			error(line, "Invalid instruction!");
+			break outside;
+		}
+
+		final += diodify(codeMap[instruction]);
+		nextFinalLine();
+
+		if (hasArgument[instruction]) {
+			if (!argument) {
+				error(line, "Missing Argument!");
+				break outside;
+			}
+			
+			if (jumpInstuctions[instruction]) {
+
+				if (!(argument in jumps)) {
+					error(line, "Invalid jump label!");
+					break outside;
+				}
+
+		 		final += diodify(jumps[argument]);
+		 		usedJumps[argument] = true;
+				nextFinalLine();
+			} else {
+
+				if (!argument.match(hexRegex)) {
+					error(line, "Invalid Argument!");
+					break outside;
+				}
+
+				final += diodify(parseInt(argument, 16));
+				nextFinalLine();
+			}
+		}
 	}
+}
 
-	// i = parseInt(i);
-	// let token = source[i], addNext = i < source.length - 1;
-	// if (token in codeMap) {
-	// 	final += diodify(codeMap[token]);
-	// } else if (token.match(/^0x[0-f]$/i)) {
-	// 	final += diodify(parseInt(token, 16));
-	// } else if (token in jumps) {
-	// 	final += diodify(jumps[token]);
-	// } else {
-	// 	jumps[token] = i;
-	// 	offset--;
-	// 	addNext = false;
-	// }
-
-	final += `\n${i + offset}: `;
+for (let jump in jumps) {
+	if (!usedJumps[jump]) {
+		final += `\nWarning: Unused jump label: ${jump}`;
+	}
 }
 
 console.log(final);
